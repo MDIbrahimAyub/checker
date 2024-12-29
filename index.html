@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H_A_I</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>ONLY TRUTH</h1>
+        <div class="line">
+            <div class="line1"></div>
+        </div>
+        <div class="form-group">
+            <h4>NAME</h4>
+            <input type="text" name="name" placeholder="Name" required>
+        </div>
+        <div class="form-group">
+            <h4>DATE</h4>
+            <input type="text" name="date" placeholder="Date" required>
+        </div>
+        <div class="form-group">
+            <h4>DAY</h4>
+            <input type="text" name="day" placeholder="Day" required>
+        </div>
+        <div class="form-group">
+            <h4>NAMAZ</h4>
+            <input type="text" name="fajr" placeholder="Fajr" required>
+        </div>
+        <div class="form-group">
+            <input type="text" name="zauhar" placeholder="Zauhar" required>
+        </div>
+        <div class="form-group">
+            <input type="text" name="asar" placeholder="Asar" required>
+        </div>
+        <div class="form-group">
+            <input type="text" name="magrib" placeholder="Magrib" required>
+        </div>
+        <div class="form-group">
+            <input type="text" name="esha" placeholder="Esha" required>
+        </div>
+        <div class="form-group">
+            <h4>DUA</h2>
+            <input type="text" name="dua" placeholder="Dua" required>
+        </div>
+        <div class="form-group">
+            <h4>CRIME</h4>
+            <input type="text" name="crime" placeholder="Crime" required>
+        </div>
+        <div class="form-group">
+            <h4>TAHAJJUD</h4>
+            <input type="text" name="tahajjud" placeholder="Tahajjud" required>
+        </div>
+        <button type="submit" class="submit">Submit</button>
+
+        <h2></h2>
+        <div class="data-buttons">
+            <button id="ibrahimBtn" class="user-btn">Ibrahim</button>
+            <button id="hamzaBtn" class="user-btn">Hamza</button>
+            <button id="hurairaBtn" class="user-btn">Huraira</button>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const formElements = document.querySelectorAll('.container input');
+            const submitButton = document.querySelector('.submit');
+
+            submitButton.addEventListener('click', () => {
+                let isValid = true;
+                let formData = {};
+
+                formElements.forEach((input) => {
+                    if (!input.value.trim()) {
+                        isValid = false;
+                        alert(`${input.placeholder} is required!`);
+                        return;
+                    }
+                    formData[input.name] = input.value.trim();
+                });
+
+                if (isValid) {
+                    formData.timestamp = new Date().toISOString();
+                    saveFormData(formData);
+                }
+            });
+
+            initializeButtons();
+        };
+
+        function saveFormData(formData) {
+            const name = formData.name.toLowerCase();
+            let storageKey = '';
+
+            if (name === 'ibrahim') {
+                storageKey = 'ibrahimData';
+            } else if (name === 'hamza') {
+                storageKey = 'hamzaData';
+            } else if (name === 'huraira') {
+                storageKey = 'hurairaData';
+            } else {
+                alert('Invalid name! Please enter Ibrahim, Hamza, or Huraira');
+                return;
+            }
+
+            let existingData = JSON.parse(localStorage.getItem(storageKey)) || [];
+            existingData.push(formData);
+            localStorage.setItem(storageKey, JSON.stringify(existingData));
+
+            updateButtonContent(storageKey.replace('Data', '') + 'Btn', storageKey);
+            alert('Data saved successfully!');
+            clearForm();
+        }
+
+        function clearForm() {
+            document.querySelectorAll('.container input').forEach(input => {
+                input.value = '';
+            });
+        }
+
+        function formatUserData(userData) {
+    if (!userData || userData.length === 0) {
+        return 'No data available';
+    }
+
+    return userData.map((entry, index) => {
+        const date = entry.timestamp;
+        return `<b>Entry ${index + 1}</b> - Date: ${date}<br>` +
+            Object.entries(entry)
+                .filter(([key]) => key !== 'timestamp' && key !== 'name')
+                .map(([key, value]) => `<span>${key.toUpperCase()}: ${value}</span>`)
+                .join('<br>');
+    }).join('<br><br>'); // Single line break between entries
+}
+function updateButtonContent(btnId, dataKey) {
+    const btn = document.getElementById(btnId);
+    const userData = JSON.parse(localStorage.getItem(dataKey)) || [];
+    const userName = dataKey.replace('Data', '').toUpperCase(); // Convert name to uppercase
+    
+    // Create or update data content div
+    let dataContent = btn.querySelector('.data-content');
+    if (!dataContent) {
+        dataContent = document.createElement('div');
+        dataContent.className = 'data-content';
+        btn.appendChild(dataContent);
+    }
+    
+    const buttonTitle = userName; // Only show the uppercase name
+    btn.childNodes[0].textContent = buttonTitle;
+    dataContent.innerHTML = formatUserData(userData); // Use innerHTML for styled content
+}
+function initializeButtons() {
+    ['ibrahim', 'hamza', 'huraira'].forEach(name => {
+        const btnId = name + 'Btn';
+        updateButtonContent(btnId, name + 'Data');
+    });
+
+    document.querySelectorAll('.user-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const dataContent = this.querySelector('.data-content');
+            if (dataContent) {
+                const isVisible = dataContent.style.display === 'block';
+                // Hide all other data content
+                document.querySelectorAll('.user-btn .data-content').forEach(content => {
+                    content.style.display = 'none';
+                });
+
+                // Toggle current button's data content
+                dataContent.style.display = isVisible ? 'none' : 'block';
+            }
+        });
+    });
+}
+    </script>
+</body>
+</html>
